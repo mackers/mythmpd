@@ -1,0 +1,66 @@
+                                      MythMPD
+
+MythMPD is a simple MPD client for MythTV.
+
+FEATURES
+--------
+
+- shows current playing song information - title/artist/album/elapsed/total time
+- shows current playlist
+- basic play/pause/stop/next/previous track keyboard/remote controls
+- volume up/down/mute
+
+There is (currently?) no advanced support for playlist management; i.e. you cannot add songs to the playlist. You will have to use a rich client on another machine for this.
+
+
+BUILD INSTRUCTIONS
+------------------
+
+You will need MythTV installed with the MythMusic plugin.
+
+tar -jxvf mythmpd.tar.bz2
+cd mythmpd
+qmake mythmpd.pro
+make
+make install
+
+
+CONFIGURATION
+-------------
+
+Currently, MythMPD can only connect to the mpd daemon running on localhost on the default port. If you need to change this, change the source code.
+
+
+RUNNING
+-------
+
+To test it:
+
+mythfrontend mythmpd
+
+To install in mythtv, add the following to /usr/share/mythtv/library.xml
+
+<button>
+<type>MPD_MYTH</type>
+<text>MythMPD</text>
+<action>PLUGIN mythmpd</action>
+</button>
+
+I usually add a key binding for the "MythMPD" jump point and configure my remote to use that jump point.
+
+
+DISCLAIMER
+----------
+
+Er, this is a hack that I wittled up one day for my own use. I'm not a C programmer, so I dismiss any eyebrows raised at the quality of the code.
+
+MythMPD is distributed under the GNU GENERAL PUBLIC LICENSE version 3, and where noted with the @license tag, the LESSER GENERAL PUBLIC LICENSE version 3. Please see http://www.gnu.org for details and the specific text of the license.
+
+MORE INFO
+---------
+
+http://www.mackers.com/projects/mythmpd/
+http://www.musicpd.org/
+http://www.mythtv.org/
+
+

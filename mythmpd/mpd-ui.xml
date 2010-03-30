@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mythuitheme>
+
+  <window name="mpd">
+
+    <font name="title" face="Arial">
+     <color>#ffffff</color>
+     <size>24</size>
+     <bold>yes</bold>
+    </font>
+
+    <font name="active" face="Arial">
+     <color>#ffffff</color>
+     <size>18</size>
+     <bold>yes</bold>
+    </font>
+
+    <font name="inactive" face="Arial">
+     <color>#9999cc</color>
+     <size>18</size>
+     <bold>yes</bold>
+    </font>
+
+    <font name="selected" face="Arial">
+     <color>#00ff00</color>
+     <size>18</size>
+     <bold>yes</bold>
+    </font>
+
+    <font name="status" face="Arial">
+     <color>#00ff00</color>
+     <size>14</size>
+     <bold>yes</bold>
+    </font>
+
+
+    <font name="active-large" face="Arial">
+     <color>#ffffff</color>
+     <size>24</size>
+     <bold>yes</bold>
+    </font>
+
+    <container name="title">
+	<area>20,10,780,400</area>
+
+      <textarea name="heading" draworder="1" align="center">
+        <font>title</font>
+        <area>0,0,800,40</area>
+        <value>MythMPD</value>
+      </textarea>
+    </container>
+
+        <container name="background">
+            <image name="list_background" draworder="0" fleximage="no">
+                <filename>rk-lines.png</filename>
+                <position>0,220</position>
+            </image>
+
+            <image name="track_info_background" draworder="0" fleximage="no">
+                <filename>track_info_background.png</filename>
+                <position>0,50</position>
+            </image>
+
+        </container>
+
+    <container name="info">
+      <area>133,70,650,200</area>
+
+      <textarea name="track" draworder="1" align="left">
+        <font>active-large</font>
+	<area>10,0,520,30</area>
+        <value></value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="artist" draworder="1" align="left">
+        <font>active</font>
+	<area>10,35,520,30</area>
+        <value></value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="album" draworder="1" align="left">
+        <font>active</font>
+	<area>10,60,520,30</area>
+        <value></value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="time" draworder="1" align="right">
+        <font>active</font>
+	<area>10,95,520,30</area>
+        <value></value>
+      </textarea>
+
+      <textarea name="status" draworder="1" align="left">
+        <font>status</font>
+	<area>10,95,520,30</area>
+        <value>Connecting...</value>
+      </textarea>
+
+
+    </container>
+
+    <container name="listbox">
+	<area>0,220,800,350</area>
+
+	<listarea name="playlist">
+	  <area>20,20,780,330</area>
+	  <fcnfont name="active" function="active"></fcnfont>
+	  <fcnfont name="inactive" function="inactive"></fcnfont>
+	  <fcnfont name="selected" function="selected"></fcnfont>
+	  <columnpadding>10</columnpadding>
+	  <column number="1" width="700" context="-1"></column>
+	  <items>13</items>
+	  <!--
+	  <image function="selectionbar" filename="cr-selectbar.png" location="-12,-5"></image>
+	  -->
+	  <image function="uparrow" filename="uparrow.png" location="750,22"></image>
+	  <image function="downarrow" filename="downarrow.png" location="750,195"></image>
+	</listarea>
+    </container>
+
+    </window>
+</mythuitheme>
