@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mythuitheme SYSTEM "http://www.mythtv.org/schema/mythuitheme.dtd">
+<mythuitheme>
+    <window name="MythMPD">
+
+        <textarea name="windowtitle">
+            <area>0,5,800,100</area>
+            <font>large</font>
+            <align>allcenter</align>
+            <multiline>yes</multiline>
+            <value>MythMPD</value>
+        </textarea>
+
+<buttonlist name="mpd_button_list">
+    <area>10%,10,800,400</area>
+    <layout>vertical</layout>
+    <spacing>1</spacing>
+    <arrange>stack</arrange>
+    <align>center</align>
+    <scrollstyle>free</scrollstyle>
+    <wrapstyle>items</wrapstyle>
+    <buttonarea>0,0,100%,97%</buttonarea>
+    <statetype name="buttonitem">
+        <state name="selectedinactive">
+            <area>0,0,100%,30</area>
+            <imagetype name="buttonbackground">
+                <filename>button_background.png</filename>
+            </imagetype>
+            <textarea name="buttontext">
+                <area>5,10,100%,30</area>
+                <font>basesmall</font>
+                <cutdown>yes</cutdown>
+                <align>left,vcenter</align>
+            </textarea>
+            <statetype name="buttoncheck">
+                <position>91%,5</position>
+                <state type="off">
+                    <imagetype name="checkoff">
+                        <filename>lb-check-empty.png</filename>
+                    </imagetype>
+                </state>
+                <state type="half">
+                   <imagetype name="checkhalf">
+                        <filename>lb-check-half.png</filename>
+                    </imagetype>
+                </state>
+                <state type="full">
+                    <imagetype name="checkfull">
+                        <filename>lb-check-full.png</filename>
+                    </imagetype>
+                </state>
+            </statetype>
+            <imagetype name="buttonarrow">
+                <position>92%,11</position>
+                <filename>rightarrow.png</filename>
+            </imagetype>
+        </state>
+        <state name="selectedactive" from="selectedinactive">
+            <imagetype name="buttonbackground">
+                <filename>button_selected_background.png</filename>
+                <alphapulse min="200" max="255" change="1"/>
+            </imagetype>
+        </state>
+        <state name="inactive" from="selectedactive">
+            <imagetype name="buttonbackground">
+                <filename>button_selected_background.png</filename>
+                <alpha>127</alpha>
+            </imagetype>
+            <textarea name="buttontext">
+                <font>basesmallgrey</font>
+            </textarea>
+        </state>
+        <state name="active" from="inactive">
+            <imagetype name="buttonbackground">
+                <filename>button_selected_background.png</filename>
+                <alpha>200</alpha>
+            </imagetype>
+            <textarea name="buttontext">
+                <font>basesmall</font>
+            </textarea>
+        </state>
+    </statetype>
+    <statetype name="upscrollarrow">
+        <position>10,97%</position>
+        <state type="off">
+            <imagetype name="upon">
+                <filename>uparrow.png</filename>
+                <alpha>90</alpha>
+            </imagetype>
+        </state>
+        <state type="full">
+            <imagetype name="upoff">
+                <filename>uparrow.png</filename>
+            </imagetype>
+        </state>
+    </statetype>
+    <statetype name="downscrollarrow">
+        <position>40,97%</position>
+        <state type="off">
+            <imagetype name="dnon">
+                <filename>downarrow.png</filename>
+                <alpha>90</alpha>
+            </imagetype>
+        </state>
+        <state type="full">
+            <imagetype name="dnoff">
+                <filename>downarrow.png</filename>
+            </imagetype>
+        </state>
+    </statetype>
+</buttonlist>
+
+      <textarea name="file_label" draworder="1" align="left">
+        <font>active-large</font>
+	<area>10,440,50,200</area>
+        <value>File: </value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="file" draworder="1" align="left">
+        <font>active-large</font>
+	<area>50,440,500,200</area>
+        <value></value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="artist_label" draworder="1" align="left">
+        <font>active</font>
+	<area>10,460,60,200</area>
+        <value>Artist: </value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="artist" draworder="1" align="left">
+        <font>active</font>
+	<area>70,460,500,200</area>
+        <value></value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="time_label" draworder="1" align="right">
+        <font>active</font>
+	<area>10,480,50,200</area>
+        <value>Time:</value>
+	<cutdown>yes</cutdown>
+      </textarea>
+
+      <textarea name="time" draworder="1" align="right">
+        <font>active</font>
+	<area>60,480,100,200</area>
+        <value></value>
+      </textarea>
+
+      <textarea name="status_label" draworder="1" align="left">
+        <font>status</font>
+	<area>10,540,60,200</area>
+        <value>Status: </value>
+      </textarea>
+
+      <textarea name="status" draworder="1" align="left">
+        <font>status</font>
+	<area>70,540,100,200</area>
+        <value></value>
+      </textarea>
+
+      <textarea name="MPDinfo_label" draworder="1" align="left">
+        <font>status</font>
+	<area>10,560,150,200</area>
+        <value>MPD Info: </value>
+      </textarea>
+
+      <textarea name="MPDinfo" draworder="1" align="left">
+        <font>status</font>
+	<area>150,560,200,200</area>
+        <value></value>
+      </textarea>
+
+        <button name="cancel" from="basebutton">
+            <position>100,600</position>
+            <value>Cancel</value>
+        </button>
+
+    </window>
+</mythuitheme>
+

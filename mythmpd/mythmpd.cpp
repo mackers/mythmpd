@@ -1,448 +1,83 @@
-#ifndef MYTHMPD_CPP
-#define MYTHMPD_CPP
+// POSIX headers
+#include <unistd.h>
 
-/* QT includes */
-#include <qnamespace.h>
-#include <qstringlist.h>
-#include <qapplication.h>
-#include <qbuttongroup.h>
-
-/* MythTV includes */
-#include <mythtv/mythcontext.h>
+// MythTV headers
+#include <mythuibutton.h>
+#include <mythuibuttonlist.h>
+#include <mythmainwindow.h>
+#include <mythcontext.h>
+#include <mythdirs.h>
 #include <mythtv/mythdialogs.h>
 
-/* MPD includes */
-#include "libmpdclient.h"
-
-using namespace std;
-
+// MythMPD headers
 #include "mythmpd.h"
 
-MythMPD::MythMPD(MythMainWindow *parent, QString windowName,
-                           QString themeFilename, const char *name)
-        : MythThemedDialog(parent, windowName, themeFilename, name)
+#define LOC      QString("MythMPD: ")
+#define LOC_WARN QString("MythMPD, Warning: ")
+#define LOC_ERR  QString("MythMPD, Error: ")
+
+/** \brief Creates a new MythMPD Screen
+*  \param parent Pointer to the screen stack
+*  \param name The name of the window
+*/
+MythMPD::MythMPD(MythScreenStack *parent, QString name) :
+         MythScreenType(parent, name),
+         m_cancelButton(NULL)
 {
     reset();
+    //example of how to find the configuration dir currently used.
+    QString confdir = GetConfDir();
+    VERBOSE(VB_IMPORTANT, LOC + "Conf dir:"  + confdir);
+}
 
-    ltype = (UIListType *)getContainer("listbox")->GetType("playlist");
+bool MythMPD::Create()
+{
+    bool foundtheme = false;
 
-    clearInfoBoxText();
+    // Load the theme for this screen
+    foundtheme = LoadWindowFromXML("mythmpd-ui.xml", "MythMPD", this);
+    
+    if (!foundtheme)
+        return false;
+    
+    bool err = false;
+    UIUtilE::Assign(this, m_fileText, "file", &err);
+    UIUtilE::Assign(this, m_artistText, "artist", &err);
+    UIUtilE::Assign(this, m_playtimeText, "time", &err);
+    UIUtilE::Assign(this, m_statusText, "status", &err);
+    UIUtilE::Assign(this, m_MPDinfoText, "MPDinfo", &err);
+    UIUtilE::Assign(this, m_cancelButton, "cancel", &err);
+    UIUtilE::Assign(this, m_mpdButtonList, "mpd_button_list", &err);
+    
+    if (err)
+    {
+        VERBOSE(VB_IMPORTANT, "Cannot load screen 'MythMPD'");
+        return false;
+    }
+    
+    BuildFocusList();
     clearPlayList();
+    clearInformationText();
+    updatePlayList();
+    SetFocusWidget(m_mpdButtonList);
 
+//    connect(m_connect_mpdButton, SIGNAL(Clicked()), this, SLOT(connect_mpd_clicked()));
+//    connect(m_disconnect_mpdButton, SIGNAL(Clicked()), this, SLOT(disconnect_mpd_clicked()));
+    connect(m_cancelButton, SIGNAL(Clicked()), this, SLOT(cancel_clicked()));
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateStatus()));
-    timer->start(1000); 
-    statusTimer = NULL;
+    timer->start(1500);
+    return true;
 }
 
-void MythMPD::clearInfoBoxText()
+bool MythMPD::keyPressEvent(QKeyEvent *event)
 {
-    getUITextType("track")->SetText("--");
-    getUITextType("artist")->SetText("--");
-    getUITextType("album")->SetText("--");
-    getUITextType("time")->SetText("--/--");
-}
-
-void MythMPD::setStatusText(char *text)
-{
-    if (blockStatusTextUpdates == 0)
-        getUITextType("status")->SetText(text);
-}
-
-void MythMPD::setStatusTextTimer(char *text)
-{
-    blockStatusTextUpdates = 1;
-    getUITextType("status")->SetText(text);
-
-    statusTimer = new QTimer(this);
-    connect(statusTimer, SIGNAL(timeout()), this, SLOT(statusTimerDone()));
-    statusTimer->start(1500, TRUE);
-}
-
-void MythMPD::statusTimerDone()
-{
-    blockStatusTextUpdates = 0;
-}
-
-void MythMPD::clearPlayList()
-{
-    if (ltype != NULL)
-    {   
-        ltype->ResetList();
-        ltype->SetActive(true);
-    }
-
-    updateForeground();
-}
-
-int MythMPD::connectMPD()
-{
-    isConnecting = 1;
-
-    conn = mpd_newConnection("localhost", 6600, 10);
-
-    if (conn->error)
-    {
-	dieMPD("Could not connect");
-	isConnecting = 0;
-	return -1;
-    }
-
-    isConnecting = 0;
-
-    return 0;
-}
-
-void MythMPD::disconnectMPD()
-{
-    if (conn != NULL)
-	    mpd_closeConnection(conn);
-}
-
-void MythMPD::dieMPD(char *error)
-{
-    //timer->stop();
-
-    if (conn != NULL)
-	    fprintf(stderr,"%s\n",conn->errorStr);
-
-    setStatusText(error);
-    clearInfoBoxText();
-    clearPlayList();
-
-    disconnectMPD();
-    reset();
-}
-
-void MythMPD::reset()
-{
-    conn = NULL;
-    isConnecting = 0;
-    isPlaying = 0;
-    isStopped = 0;
-    isTicking = 0;
-    blockStatusTextUpdates = 0;
-    volume = 80;
-    previousVolume = 0;
-    songPosition = -1;
-    previousSongPosition = -2;
-    tracksInPlayList = 1;
-    previousTracksInPlayList = -1;
-}
-
-int MythMPD::updateStatus()
-{
-    if (conn == NULL)
-    {
-	if (isConnecting == 0)
-		connectMPD();
-
-	return -1;
-    }
-
-    if (isTicking == 1)
-    {
-    	return -1;
-    }
-
-    //printf("Tick\n");
-
-    mpd_Status * status;
-    mpd_InfoEntity * entity;
-    int doUpdatePlayList = 0;
-    isTicking = 1;
-
-    mpd_sendCommandListOkBegin(conn);
-
-    if (conn->error)
-    {
-        isTicking = 0;
-	dieMPD("Connection closed");
-	return -1;
-    }
-
-    mpd_sendStatusCommand(conn);
-
-    if (conn->error)
-    {
-        isTicking = 0;
-	dieMPD("Connection closed");
-	return -1;
-    }
-
-    mpd_sendCurrentSongCommand(conn);
+    if (GetFocusWidget() && GetFocusWidget()->keyPressEvent(event))
+        return true;
     
-    if (conn->error)
-    {
-        isTicking = 0;
-	dieMPD("Connection closed");
-	return -1;
-    }
-
-    mpd_sendCommandListEnd(conn);
-
-    if (conn->error)
-    {
-        isTicking = 0;
-	dieMPD("Connection closed");
-	return -1;
-    }
-
-    if((status = mpd_getStatus(conn))==NULL)
-    {
-	//dieMPD("Connection closed");
-	isTicking = 0;
-	return -1;
-    }
-
-    if (status->state == MPD_STATUS_STATE_PAUSE)
-    {
-	isPlaying = 0;
-	isStopped = 0;
-
-        setStatusText("Paused");
-    }
-    else if (status->state == MPD_STATUS_STATE_PLAY)
-    {
-	isPlaying = 1;
-	isStopped = 0;
-
-	if (volume == 0)
-        {
-            setStatusText("Muted");
-	}
-	else 
-	{
-            setStatusText("Connected");
-	}
-    }
-    else
-    {
-	if (isStopped == 0)
-	    doUpdatePlayList = 1;
-
-	isStopped = 1;
-	songPosition = -1;
-	previousSongPosition = -2;
-
-        setStatusText("Connected");
-	setInfo("Nothing Playing", "", "");
-	getUITextType("time")->SetText("--/--");
-    }
-
-    songPosition = status->song;
-    tracksInPlayList = status->playlistLength;
-    volume = status->volume;
-
-    // TODO update playlist if playlist id is different
-
-    if (tracksInPlayList != previousTracksInPlayList)
-    {
-	previousTracksInPlayList = tracksInPlayList;
-	doUpdatePlayList = 1;
-    }
-
-    if (status->state == MPD_STATUS_STATE_PLAY && status->elapsedTime < 5)
-    {
-    	doUpdatePlayList = 1;
-    }
-
-    if (status->state == MPD_STATUS_STATE_PAUSE || status->state == MPD_STATUS_STATE_PLAY)
-    {
-	if (songPosition != previousSongPosition)
-	{
-	      previousSongPosition = songPosition;
-	      doUpdatePlayList = 1;
-	}
-
-        setElapsedTime(status->elapsedTime, status->totalTime);
-
-	if (conn->error)
-	{
-		mpd_freeStatus(status);
-		isTicking = 0;
-		dieMPD("Connection closed");
-		return -1;
-	}
-
-	if (doUpdatePlayList == 1)
-	{
-            mpd_nextListOkCommand(conn);
-
-	    if (conn->error)
-	    {
-		mpd_freeStatus(status);
-		isTicking = 0;
-		dieMPD("Connection closed");
-		return -1;
-	    }
-
-	    while ((entity = mpd_getNextInfoEntity(conn)))
-	    {
-		    mpd_Song * song = entity->info.song;
-
-		    if (entity->type!=MPD_INFO_ENTITY_TYPE_SONG)
-		    {
-			    mpd_freeInfoEntity(entity);
-			    continue;
-		    }
-
-		    setInfo(song->title, song->artist, song->album);
-
-		    mpd_freeInfoEntity(entity);
-	    }
-
-	    if (conn->error)
-	    {
-		    mpd_freeStatus(status);
-		    isTicking = 0;
-		    dieMPD("Connection closed");
-		    return -1;
-	    }
-	}
-    }
-
-    mpd_finishCommand(conn);
-
-    if (conn->error)
-    {
-	mpd_freeStatus(status);
-	isTicking = 0;
-	dieMPD("Connection closed");
-	return -1;
-    }
-
-    mpd_freeStatus(status);
-
-    if (doUpdatePlayList == 1)
-        updatePlayList();
-
-    isTicking = 0;
-
-    return 0;
-}
-
-int MythMPD::updatePlayList()
-{
-    //printf("Updating playlist...\n");
-
-    mpd_InfoEntity * entity;
-
-    mpd_sendPlaylistInfoCommand(conn,-1);
-
-    if (conn->error)
-    {
-        dieMPD("Connection closed");
-	return -1;
-    }
-
-    int startWindow = songPosition - 6;
-    if (startWindow < 0) startWindow = 0;
-    int endWindow = startWindow + 13;
-
-    if (ltype)
-    {   
-        ltype->ResetList();
-        ltype->SetActive(true);
-
-	int counter = 0;
-
-        while ((entity = mpd_getNextInfoEntity(conn)))
-        {
-	    if (entity->type != MPD_INFO_ENTITY_TYPE_SONG)
-	    {
-	        mpd_freeInfoEntity(entity);
-		continue;
-	    }
-
-	    mpd_Song * song = entity->info.song;
-	    int thisPosition = song->pos;
-
-	    if (thisPosition >= startWindow && thisPosition <= endWindow)
-	    {
-                char buf[256];
-		sprintf(buf, "%s - %s", song->artist, song->title);
-
-		ltype->SetItemText(counter, buf);
-
-		if (thisPosition == songPosition && !isStopped)
-		{
-	            ltype->SetItemCurrent(counter);
-		}
-
-		counter++;
-	    }
-
-	    mpd_freeInfoEntity(entity);
-	}
-
-	if (isStopped)
-	{
-            ltype->SetItemCurrent(-1);
-	}
-
-	updateForeground();
-    }
-
-    if (conn->error)
-    {
-        dieMPD("Connection closed");
-	return -1;
-    }
-
-    mpd_finishCommand(conn); 
-
-    if (conn->error)
-    {
-        dieMPD("Connection closed");
-	return -1;
-    }
-
-    return 0;
-}
-
-void MythMPD::setInfo(char *title, char *artist, char *album)
-{
-    getUITextType("track")->SetText(title);
-    getUITextType("artist")->SetText(artist);
-    getUITextType("album")->SetText(album);
-}
-
-void MythMPD::setElapsedTime(int elapsedSeconds, int totalSeconds)
-{
-    char buf[200];
-    char es[100];
-    char ts[100];
-
-    strcpy(es, secondsToMinutesAndSeconds(elapsedSeconds));
-    strcpy(ts, secondsToMinutesAndSeconds(totalSeconds));
-
-    sprintf(buf, "%s/%s", es, ts);
-    getUITextType("time")->SetText(buf);
-}
-
-char* MythMPD::secondsToMinutesAndSeconds(int seconds)
-{
-    float s = seconds;
-    static char buf[100];
-    int h, m;
-
-    s = (int)(10. * s + .5) / 10.;
-    h = (int)(s / 3600.);
-    s -= 3600 * h;
-    m = (int)(s / 60.);
-    s -= 60 * m;
-    int s2 = (int)s;
-    sprintf(buf, "%02d:%02d", m, s2);
-    return buf;
-}
-
-void MythMPD::keyPressEvent(QKeyEvent *e)
-{
     bool handled = false;
-
     QStringList actions;
-    gContext->GetMainWindow()->TranslateKeyPress("Music", e, actions);
+    handled = GetMythMainWindow()->TranslateKeyPress("Music", event, actions);
 
     for (unsigned int i = 0; i < actions.size() && !handled; i++)
     {   
@@ -490,7 +125,7 @@ void MythMPD::keyPressEvent(QKeyEvent *e)
 
 	    char buf[16];
 	    sprintf(buf, "Volume: %d%%", volume);
-            setStatusTextTimer(buf);
+            setStatus(buf);
 	    
             mpd_sendSetvolCommand(conn, volume);
 	    mpd_finishCommand(conn);
@@ -502,7 +137,7 @@ void MythMPD::keyPressEvent(QKeyEvent *e)
 
 	    char buf[16];
 	    sprintf(buf, "Volume %d%%", volume);
-            setStatusTextTimer(buf);
+            setStatus(buf);
 
 	    mpd_sendSetvolCommand(conn, volume);
 	    mpd_finishCommand(conn);
@@ -537,52 +172,439 @@ void MythMPD::keyPressEvent(QKeyEvent *e)
 	    handled = false;
 	}
     }
+    
+    if (!handled && MythScreenType::keyPressEvent(event))
+        handled = true;
 
-    if (!handled)
-        MythThemedDialog::keyPressEvent(e);
+    return handled;
 }
 
-void MythMPD::closeEvent(QCloseEvent *e)
+
+void MythMPD::setStatus(char *text)
 {
-    //printf("Cleaning up...\n");
+    blockStatusTextUpdates = 1;
+    setStatusText(text);
+    statusTimer = new QTimer(this);
+    connect(statusTimer, SIGNAL(timeout()), this, SLOT(statusTimerDone()));
+    statusTimer->start(1500);
+}
+
+void MythMPD::statusTimerDone()
+{
+    blockStatusTextUpdates = 0;
+}
+
+void MythMPD::setElapsedTime(int elapsedSeconds, int totalSeconds)
+{
+    char buf[200];
+    char es[100];
+    char ts[100];
+
+    strcpy(es, secondsToMinutesAndSeconds(elapsedSeconds));
+    strcpy(ts, secondsToMinutesAndSeconds(totalSeconds));
+
+    sprintf(buf, "%s/%s", es, ts);
+    m_playtimeText->SetText(QString(es));
+}
+
+char* MythMPD::secondsToMinutesAndSeconds(int seconds)
+{
+    float s = seconds;
+    static char buf[100];
+    int h, m;
+
+    s = (int)(10. * s + .5) / 10.;
+    h = (int)(s / 3600.);
+    s -= 3600 * h;
+    m = (int)(s / 60.);
+    s -= 60 * m;
+    int s2 = (int)s;
+    sprintf(buf, "%02d:%02d", m, s2);
+    return buf;
+}
+
+
+void MythMPD::updateStatus()
+{
+    if (conn == NULL)
+    {
+        if (!(connectMPD()))
+        {
+            dieMPD("Connection closed");
+	    return;
+        }
+    }
+
+    if (isTicking == 1)
+    {
+    	return;
+    }
+
+    //printf("Tick\n");
+
+    mpd_Status * status;
+    mpd_InfoEntity * entity;
+    int doUpdatePlayList = 0;
+    isTicking = 1;
+
+    mpd_sendCommandListOkBegin(conn);
+
+    if (conn->error)
+    {
+        isTicking = 0;
+	dieMPD("Connection closed");
+	return;
+    }
+
+    mpd_sendStatusCommand(conn);
+
+    if (conn->error)
+    {
+        isTicking = 0;
+	dieMPD("Connection closed");
+	return;
+    }
+
+    mpd_sendCurrentSongCommand(conn);
+    
+    if (conn->error)
+    {
+        isTicking = 0;
+	dieMPD("Connection closed");
+	return;
+    }
+
+    mpd_sendCommandListEnd(conn);
+
+    if (conn->error)
+    {
+        isTicking = 0;
+	dieMPD("Connection closed");
+	return;
+    }
+
+    if((status = mpd_getStatus(conn))==NULL)
+    {
+	dieMPD("Connection closed");
+	isTicking = 0;
+	return;
+    }
+
+    if (status->state == MPD_STATUS_STATE_PAUSE)
+    {
+	isPlaying = 0;
+	isStopped = 0;
+
+        setStatusText("Paused");
+    }
+    else if (status->state == MPD_STATUS_STATE_PLAY)
+    {
+	isPlaying = 1;
+	isStopped = 0;
+
+	if (volume == 0)
+        {
+            setStatusText("Muted");
+	}
+	else 
+	{
+            setStatusText("Playing");
+	}
+    }
+    else
+    {
+	if (isStopped == 0)
+	    doUpdatePlayList = 1;
+
+	isStopped = 1;
+	songPosition = -1;
+	previousSongPosition = -2;
+
+        setMPDinfoText("Connected");
+	setPlayInfo("No file", "Nothing Playing");
+	m_playtimeText->SetText(QString("--/--"));
+    }
+
+    songPosition = status->song;
+    tracksInPlayList = status->playlistLength;
+    volume = status->volume;
+
+    // TODO update playlist if playlist id is different
+
+    if (tracksInPlayList != previousTracksInPlayList)
+    {
+	previousTracksInPlayList = tracksInPlayList;
+	doUpdatePlayList = 1;
+    }
+
+    if (status->state == MPD_STATUS_STATE_PLAY && status->elapsedTime < 5)
+    {
+    	doUpdatePlayList = 1;
+    }
+
+    if (status->state == MPD_STATUS_STATE_PAUSE || status->state == MPD_STATUS_STATE_PLAY)
+    {
+	if (songPosition != previousSongPosition)
+	{
+	      previousSongPosition = songPosition;
+	      doUpdatePlayList = 1;
+	}
+
+        setElapsedTime(status->elapsedTime, status->totalTime);
+
+	if (conn->error)
+	{
+		mpd_freeStatus(status);
+		isTicking = 0;
+		dieMPD("Connection closed");
+		return;
+	}
+
+	if (doUpdatePlayList == 1)
+	{
+            mpd_nextListOkCommand(conn);
+
+	    if (conn->error)
+	    {
+		mpd_freeStatus(status);
+		isTicking = 0;
+		dieMPD("Connection closed");
+		return;
+	    }
+
+	    while ((entity = mpd_getNextInfoEntity(conn)))
+	    {
+		    mpd_Song * song = entity->info.song;
+
+		    if (entity->type!=MPD_INFO_ENTITY_TYPE_SONG)
+		    {
+			    mpd_freeInfoEntity(entity);
+			    continue;
+		    }
+
+		    setPlayInfo(song->artist, song->file);
+
+		    mpd_freeInfoEntity(entity);
+	    }
+
+	    if (conn->error)
+	    {
+		    mpd_freeStatus(status);
+		    isTicking = 0;
+		    dieMPD("Connection closed");
+		    return;
+	    }
+	}
+    }
+
+    mpd_finishCommand(conn);
+
+    if (conn->error)
+    {
+	mpd_freeStatus(status);
+	isTicking = 0;
+	dieMPD("Connection closed");
+	return;
+    }
+
+    mpd_freeStatus(status);
+
+    if (doUpdatePlayList == 1)
+        updatePlayList();
+
+    isTicking = 0;
+
+    return;
+}
+
+
+
+bool MythMPD::connectMPD()
+{
+    isConnecting = 1;
+    conn = mpd_newConnection("localhost", 6600, 10);
+    if (conn->error)
+    {
+	dieMPD("Could not connect");
+        VERBOSE(VB_IMPORTANT, "MythMPD: Could not connect to mpd");
+	isConnecting = 0;
+	return false;
+    }
+    isConnecting = 0;
+
+    return true;
+}
+
+void MythMPD::disconnectMPD()
+{
+    if (conn != NULL)	
+	    mpd_closeConnection(conn);
+    VERBOSE(VB_IMPORTANT, "MythMPD: mpd connection closed");
+}
+
+void MythMPD::dieMPD(char *error)
+{
+    //timer->stop();
 
     if (conn != NULL)
-    {
-	    mpd_closeConnection(conn);
-	    conn = NULL;
-    }
+	    fprintf(stderr,"%s\n",conn->errorStr);
 
-    if (timer != NULL)
-    {
-	timer->stop();
-    	//timer->deleteLater();
-	timer = NULL;
-    }
+    setMPDinfoText(error);
+    setPlayInfo("No file", "Nothing Playing");
+    clearPlayList();
 
-    if (statusTimer != NULL)
-    {
-	statusTimer->stop();
-	//statusTimer->deleteLater();
-	statusTimer = NULL;
-    }
-
-    /*
-    if (ltype != NULL)
-    {
-    	ltype->ResetList();
-    	ltype->SetActive(false);
-    	ltype->deleteLater();
-	ltype = NULL;
-    }
-    */
-
+    disconnectMPD();
     reset();
-
-    e->accept();
-
-    //printf("Done.\n");
 }
 
-MythMPD::~MythMPD() { }
+void MythMPD::setMPDinfoText(char *text)
+{
+    m_MPDinfoText->SetText(QString(text));
+}
 
-#endif
+void MythMPD::setStatusText(char *text)
+{
+    if (blockStatusTextUpdates == 0)
+        m_statusText->SetText(QString(text));
+}
+
+void MythMPD::setPlayInfo(char *artist, char *file)
+{
+    if (not(artist)) {artist = "unknown";}
+    m_fileText->SetText(QString(file));
+    m_artistText->SetText(QString(artist));
+}
+
+
+void MythMPD::clearInformationText()
+{
+    m_fileText->SetText(QString("--"));
+    m_artistText->SetText(QString("--"));
+    m_playtimeText->SetText(QString("--"));
+    m_MPDinfoText->SetText(QString("--"));
+}
+
+void MythMPD::cancel_clicked(void)
+{
+   setStatusText("cancel clicked");
+}
+
+void MythMPD::connect_mpd_clicked(void)
+{
+    if (connectMPD())
+        VERBOSE(VB_IMPORTANT, "MythMPD: connected to mpd");
+}
+
+void MythMPD::disconnect_mpd_clicked(void)
+{
+  //  m_statusText->SetText(QString("disconnected from MPD"));
+}
+
+
+void MythMPD::clearPlayList()
+{
+    m_mpdButtonList->Reset();
+}
+
+void MythMPD::reset()
+{
+    conn = NULL;
+    isConnecting = 0;
+    isPlaying = 0;
+    isStopped = 0;
+    isTicking = 0;
+    blockStatusTextUpdates = 0;
+    volume = 80;
+    previousVolume = 0;
+    songPosition = -1;
+    previousSongPosition = -2;
+    tracksInPlayList = 1;
+    previousTracksInPlayList = -1;
+    VERBOSE(VB_IMPORTANT, "MythMPD: Playlist cleared/reset");
+}
+
+int MythMPD::updatePlayList()
+{
+    //printf("Updating playlist...\n");
+
+    mpd_InfoEntity *entity;
+    if (conn == NULL)
+    {
+        if (!(connectMPD()))
+        {
+            dieMPD("Connection closed");
+	    return -1;
+        }
+        //connect_mpd_clicked();
+    }
+    setMPDinfoText("Connected");
+    mpd_sendPlaylistInfoCommand(conn,-1);
+
+    int startWindow = songPosition - 6;
+    if (startWindow < 0) startWindow = 0;
+    int endWindow = startWindow + 13;
+
+    int counter = 0;
+    m_mpdButtonList->Reset();
+    entity = mpd_getNextInfoEntity(conn);
+
+    VERBOSE(VB_IMPORTANT, "MythMPD: preparing playlist");
+
+    while (entity)
+    {
+        if (entity->type != MPD_INFO_ENTITY_TYPE_SONG)
+        {
+            mpd_freeInfoEntity(entity);
+	    continue;
+        };
+
+        mpd_Song *song = entity->info.song;
+        int thisPosition = song->pos;
+        counter++;
+        char buf[256];
+        if (not(song->title))
+        {
+            sprintf(buf, "%s / %s / %s", song->file, song->artist, song->album);
+        }
+        else
+        {
+            sprintf(buf, "%s / %s / %s", song->title, song->artist, song->album);
+        }
+
+        VERBOSE(VB_IMPORTANT, buf);
+
+        if (thisPosition >= startWindow && thisPosition <= endWindow)
+        {
+            MythUIButtonListItem *mpdItem = new MythUIButtonListItem(m_mpdButtonList,QString(buf));
+
+            if (thisPosition == songPosition && !isStopped)
+            {
+	    };
+
+	};
+
+        mpd_freeInfoEntity(entity);
+        entity = mpd_getNextInfoEntity(conn);
+    };
+
+    if (isStopped)
+    {
+       // m_mpdButtonList->SetItemCurrent(-1);
+    };
+
+    if (conn->error)
+    {
+        dieMPD("Connection closed");
+	return -1;
+    }
+
+    mpd_finishCommand(conn); 
+
+    if (conn->error)
+    {
+        dieMPD("Connection closed");
+	return -1;
+    }
+    return 0;
+}
+

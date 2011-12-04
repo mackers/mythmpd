@@ -1,107 +1,89 @@
 /****************************************************************************
-** MythMPD meta object code from reading C++ file 'mythmpd.h'
+** Meta object code from reading C++ file 'mythmpd.h'
 **
-** Created: Sun Nov 11 17:38:50 2007
-**      by: The Qt MOC ($Id: qt/moc_yacc.cpp   3.3.7   edited Oct 19 16:22 $)
+** Created: Sun Dec 4 12:32:58 2011
+**      by: The Qt Meta Object Compiler version 62 (Qt 4.7.4)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#undef QT_NO_COMPAT
 #include "mythmpd.h"
-#include <qmetaobject.h>
-#include <qapplication.h>
-
-#include <private/qucomextra_p.h>
-#if !defined(Q_MOC_OUTPUT_REVISION) || (Q_MOC_OUTPUT_REVISION != 26)
-#error "This file was generated using the moc from 3.3.7. It"
+#if !defined(Q_MOC_OUTPUT_REVISION)
+#error "The header file 'mythmpd.h' doesn't include <QObject>."
+#elif Q_MOC_OUTPUT_REVISION != 62
+#error "This file was generated using the moc from 4.7.4. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
 
-const char *MythMPD::className() const
+QT_BEGIN_MOC_NAMESPACE
+static const uint qt_meta_data_MythMPD[] = {
+
+ // content:
+       5,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       5,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+ // slots: signature, parameters, type, tag, flags
+       9,    8,    8,    8, 0x0a,
+      27,    8,    8,    8, 0x0a,
+      42,    8,    8,    8, 0x08,
+      67,    8,    8,    8, 0x08,
+      89,    8,    8,    8, 0x08,
+
+       0        // eod
+};
+
+static const char qt_meta_stringdata_MythMPD[] = {
+    "MythMPD\0\0statusTimerDone()\0updateStatus()\0"
+    "disconnect_mpd_clicked()\0connect_mpd_clicked()\0"
+    "cancel_clicked()\0"
+};
+
+const QMetaObject MythMPD::staticMetaObject = {
+    { &MythScreenType::staticMetaObject, qt_meta_stringdata_MythMPD,
+      qt_meta_data_MythMPD, 0 }
+};
+
+#ifdef Q_NO_DATA_RELOCATION
+const QMetaObject &MythMPD::getStaticMetaObject() { return staticMetaObject; }
+#endif //Q_NO_DATA_RELOCATION
+
+const QMetaObject *MythMPD::metaObject() const
 {
-    return "MythMPD";
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->metaObject : &staticMetaObject;
 }
 
-QMetaObject *MythMPD::metaObj = 0;
-static QMetaObjectCleanUp cleanUp_MythMPD( "MythMPD", &MythMPD::staticMetaObject );
-
-#ifndef QT_NO_TRANSLATION
-QString MythMPD::tr( const char *s, const char *c )
+void *MythMPD::qt_metacast(const char *_clname)
 {
-    if ( qApp )
-	return qApp->translate( "MythMPD", s, c, QApplication::DefaultCodec );
-    else
-	return QString::fromLatin1( s );
-}
-#ifndef QT_NO_TRANSLATION_UTF8
-QString MythMPD::trUtf8( const char *s, const char *c )
-{
-    if ( qApp )
-	return qApp->translate( "MythMPD", s, c, QApplication::UnicodeUTF8 );
-    else
-	return QString::fromUtf8( s );
-}
-#endif // QT_NO_TRANSLATION_UTF8
-
-#endif // QT_NO_TRANSLATION
-
-QMetaObject* MythMPD::staticMetaObject()
-{
-    if ( metaObj )
-	return metaObj;
-    QMetaObject* parentObject = MythThemedDialog::staticMetaObject();
-    static const QUParameter param_slot_0[] = {
-	{ 0, &static_QUType_int, 0, QUParameter::Out }
-    };
-    static const QUMethod slot_0 = {"updateStatus", 1, param_slot_0 };
-    static const QUMethod slot_1 = {"statusTimerDone", 0, 0 };
-    static const QMetaData slot_tbl[] = {
-	{ "updateStatus()", &slot_0, QMetaData::Public },
-	{ "statusTimerDone()", &slot_1, QMetaData::Public }
-    };
-    metaObj = QMetaObject::new_metaobject(
-	"MythMPD", parentObject,
-	slot_tbl, 2,
-	0, 0,
-#ifndef QT_NO_PROPERTIES
-	0, 0,
-	0, 0,
-#endif // QT_NO_PROPERTIES
-	0, 0 );
-    cleanUp_MythMPD.setMetaObject( metaObj );
-    return metaObj;
+    if (!_clname) return 0;
+    if (!strcmp(_clname, qt_meta_stringdata_MythMPD))
+        return static_cast<void*>(const_cast< MythMPD*>(this));
+    return MythScreenType::qt_metacast(_clname);
 }
 
-void* MythMPD::qt_cast( const char* clname )
+int MythMPD::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    if ( !qstrcmp( clname, "MythMPD" ) )
-	return this;
-    return MythThemedDialog::qt_cast( clname );
-}
-
-bool MythMPD::qt_invoke( int _id, QUObject* _o )
-{
-    switch ( _id - staticMetaObject()->slotOffset() ) {
-    case 0: static_QUType_int.set(_o,updateStatus()); break;
-    case 1: statusTimerDone(); break;
-    default:
-	return MythThemedDialog::qt_invoke( _id, _o );
+    _id = MythScreenType::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        switch (_id) {
+        case 0: statusTimerDone(); break;
+        case 1: updateStatus(); break;
+        case 2: disconnect_mpd_clicked(); break;
+        case 3: connect_mpd_clicked(); break;
+        case 4: cancel_clicked(); break;
+        default: ;
+        }
+        _id -= 5;
     }
-    return TRUE;
+    return _id;
 }
-
-bool MythMPD::qt_emit( int _id, QUObject* _o )
-{
-    return MythThemedDialog::qt_emit(_id,_o);
-}
-#ifndef QT_NO_PROPERTIES
-
-bool MythMPD::qt_property( int id, int f, QVariant* v)
-{
-    return MythThemedDialog::qt_property( id, f, v);
-}
-
-bool MythMPD::qt_static_property( QObject* , int , int , QVariant* ){ return FALSE; }
-#endif // QT_NO_PROPERTIES
+QT_END_MOC_NAMESPACE

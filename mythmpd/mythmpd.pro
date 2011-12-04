@@ -1,6 +1,8 @@
 include ( ../../mythconfig.mak )
 include ( ../../settings.pro )
 
+QT += network sql xml core gui uitools
+
 TEMPLATE = lib
 CONFIG += plugin thread
 TARGET = mythmpd
@@ -8,9 +10,9 @@ target.path = $${LIBDIR}/mythtv/plugins
 INSTALLS += target
 
 uifiles.path = $${PREFIX}/share/mythtv/themes/default
-uifiles.files = mpd-ui.xml
+uifiles.files = mythmpd-ui.xml
 installfiles.path = $${PREFIX}/share/mythtv
-installfiles.files = mpd-ui.xml
+installfiles.files = mythmpd-ui.xml
 
 INSTALLS += uifiles
 
