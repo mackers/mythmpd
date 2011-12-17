@@ -8,6 +8,7 @@
 #include <mythcontext.h>
 #include <mythdirs.h>
 #include <mythtv/mythdialogs.h>
+#include <QSettings>
 
 // MythMPD headers
 #include "mythmpd.h"
@@ -25,9 +26,6 @@ MythMPD::MythMPD(MythScreenStack *parent, QString name) :
          m_cancelButton(NULL)
 {
     reset();
-    //example of how to find the configuration dir currently used.
-    QString confdir = GetConfDir();
-    VERBOSE(VB_IMPORTANT, LOC + "Conf dir:"  + confdir);
 }
 
 bool MythMPD::Create()
@@ -422,7 +420,22 @@ void MythMPD::updateStatus()
 bool MythMPD::connectMPD()
 {
     isConnecting = 1;
-    conn = mpd_newConnection("localhost", 6600, 10);
+    //example of how to find the configuration dir currently used.
+    QString m_sSettingsFile = GetConfDir() + "/mythmpd.conf";
+    VERBOSE(VB_IMPORTANT, LOC + "Conf file:"  + m_sSettingsFile);
+
+    QSettings settings(m_sSettingsFile, QSettings::NativeFormat);
+    QString m_server_string = settings.value("server", "localhost").toString();
+    QString m_port_string = settings.value("port", "6600").toString();
+    QString m_timeout_seconds_string = settings.value("timeout", "10").toString();
+
+    QByteArray ba = m_server_string.toLocal8Bit();
+    const char *m_server = ba.data();
+    int m_port = m_port_string.toInt();
+    float m_timeout_seconds = m_timeout_seconds_string.toFloat();
+
+    VERBOSE(VB_IMPORTANT, LOC + "Using " + m_server + ":" + m_port_string + " with " + m_timeout_seconds_string + " second timeout");    
+    conn = mpd_newConnection(m_server, m_port, m_timeout_seconds);
     if (conn->error)
     {
 	dieMPD("Could not connect");
