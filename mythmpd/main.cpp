@@ -17,6 +17,10 @@
 
 #include "mythmpd.h"
 
+#define LOC_ERR QString("MythMPD:MAIN Error: ")
+#define LOC_WARN QString("MythMPD:MAIN Warning: ")
+#define LOC QString("MythMPD:MAIN: ")
+
 using namespace std;
 
 /*extern "C" {
@@ -28,6 +32,8 @@ void runMythMPD(void);
 int  RunMythMPD(void);
 void setupKeys(void);
 
+unsigned int *g_executed;
+
 void setupKeys(void)
 {
     REG_JUMP("MythMPD", "", "", runMythMPD);
@@ -36,8 +42,19 @@ void setupKeys(void)
 
 int mythplugin_init(const char *libversion)
 {
-    if (!gContext->TestPopupVersion("MythMPD", libversion, MYTH_BINARY_VERSION))
+	VERBOSE(VB_IMPORTANT, LOC + "init");
+    if (!gContext->TestPopupVersion("mythmpd", libversion,
+                                    MYTH_BINARY_VERSION))
+    {
+        VERBOSE(VB_IMPORTANT,
+                QString("libmythmpd.so/main.o: binary version mismatch"));
         return -1;
+    }
+
+    if (!(g_executed = new unsigned int))
+    	return -1;
+    *g_executed = 0;
+
     setupKeys();
     return 0;
 }
@@ -67,11 +84,18 @@ int RunMythMPD(void)
 
 int mythplugin_run(void)
 {
+    VERBOSE(VB_IMPORTANT, LOC + "exec");
     return RunMythMPD();
 }
 
 int mythplugin_config(void)
 {
     return 0;
+}
+
+/* plugin clean-up */
+void mythplugin_destroy(void)
+{
+	VERBOSE(VB_IMPORTANT, LOC + "destroy");
 }
 
