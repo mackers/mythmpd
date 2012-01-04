@@ -18,7 +18,9 @@ INSTALLS += uifiles
 
 # Input
 HEADERS += mythmpd.h libmpdclient.h
-SOURCES += main.cpp mythmpd.cpp libmpdclient.c 
+HEADERS += mythmpd_playqueue.h
+SOURCES += main.cpp mythmpd.cpp libmpdclient.c
+SOURCES += mythmpd_playqueue.cpp 
 
 macx {
     QMAKE_LFLAGS += -flat_namespace -undefined suppress

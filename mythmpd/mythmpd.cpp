@@ -11,7 +11,9 @@
 #include <QSettings>
 
 // MythMPD headers
+#include "libmpdclient.h"
 #include "mythmpd.h"
+#include "mythmpd_playqueue.h"
 
 #define LOC      QString("MythMPD: ")
 #define LOC_WARN QString("MythMPD, Warning: ")
@@ -21,12 +23,17 @@
 *  \param parent Pointer to the screen stack
 *  \param name The name of the window
 */
-MythMPD::MythMPD(MythScreenStack *parent, QString name) :
-         MythScreenType(parent, name),
-         m_cancelButton(NULL)
+MythMPD::MythMPD(MythScreenStack *parent
+                , unsigned int *executed
+                , QString name) :
+         MythScreenType(parent, name)
+                , m_buttonPlayQueue(NULL)
+                , m_buttonDatabase(NULL)
+                , m_buttonPlaylistEditor(NULL)
 {
-    reset();
+    m_executed = executed;
 }
+
 
 bool MythMPD::Create()
 {
@@ -37,15 +44,18 @@ bool MythMPD::Create()
     
     if (!foundtheme)
         return false;
-    
+
+    reset();
     bool err = false;
-    UIUtilE::Assign(this, m_fileText, "file", &err);
-    UIUtilE::Assign(this, m_artistText, "artist", &err);
-    UIUtilE::Assign(this, m_playtimeText, "time", &err);
-    UIUtilE::Assign(this, m_statusText, "status", &err);
-    UIUtilE::Assign(this, m_MPDinfoText, "MPDinfo", &err);
-    UIUtilE::Assign(this, m_cancelButton, "cancel", &err);
-    UIUtilE::Assign(this, m_mpdButtonList, "mpd_button_list", &err);
+    UIUtilE::Assign(this, m_textTitle,            "text_Title"           , &err);
+    UIUtilE::Assign(this, m_textAlbum,            "text_Album"           , &err);
+    UIUtilE::Assign(this, m_textArtist,           "text_Artist"          , &err);
+    UIUtilE::Assign(this, m_playtimeText,         "text_Time"            , &err);
+    UIUtilE::Assign(this, m_statusText,           "status"               , &err);
+    UIUtilE::Assign(this, m_MPDinfoText,          "MPDinfo"              , &err);
+    UIUtilE::Assign(this, m_buttonPlayQueue,      "button_PlayQueue"     , &err);
+    UIUtilE::Assign(this, m_buttonDatabase,       "button_Database"      , &err);
+    UIUtilE::Assign(this, m_buttonPlaylistEditor, "button_PlaylistEditor", &err);
     
     if (err)
     {
@@ -57,11 +67,11 @@ bool MythMPD::Create()
     clearPlayList();
     clearInformationText();
     updatePlayList();
-    SetFocusWidget(m_mpdButtonList);
 
-//    connect(m_connect_mpdButton, SIGNAL(Clicked()), this, SLOT(connect_mpd_clicked()));
-//    connect(m_disconnect_mpdButton, SIGNAL(Clicked()), this, SLOT(disconnect_mpd_clicked()));
-    connect(m_cancelButton, SIGNAL(Clicked()), this, SLOT(cancel_clicked()));
+    connect(m_buttonPlayQueue, SIGNAL(Clicked()), this, SLOT(clicked_PlayQueue()));
+    connect(m_buttonDatabase, SIGNAL(Clicked()), this, SLOT(clicked_Database()));
+    connect(m_buttonPlaylistEditor, SIGNAL(Clicked()), this, SLOT(clicked_PlaylistEditor()));
+
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateStatus()));
     timer->start(1500);
@@ -380,7 +390,7 @@ void MythMPD::updateStatus()
 			    continue;
 		    }
 
-		    setPlayInfo(song->artist, song->file);
+		    setPlayInfo(song->artist, song->title);
 
 		    mpd_freeInfoEntity(entity);
 	    }
@@ -481,43 +491,64 @@ void MythMPD::setStatusText(char *text)
         m_statusText->SetText(QString(text));
 }
 
-void MythMPD::setPlayInfo(char *artist, char *file)
+void MythMPD::setPlayInfo(char *artist, char *title)
 {
     if (not(artist)) {artist = "unknown";}
-    m_fileText->SetText(QString(file));
-    m_artistText->SetText(QString(artist));
+    m_textTitle->SetText(QString(title));
+    m_textArtist->SetText(QString(artist));
 }
 
 
 void MythMPD::clearInformationText()
 {
-    m_fileText->SetText(QString("--"));
-    m_artistText->SetText(QString("--"));
+    m_textTitle->SetText(QString("--"));
+    m_textArtist->SetText(QString("--"));
     m_playtimeText->SetText(QString("--"));
     m_MPDinfoText->SetText(QString("--"));
 }
 
-void MythMPD::cancel_clicked(void)
+
+void MythMPD::clicked_PlayQueue(void)
 {
-   setStatusText("cancel clicked");
+    VERBOSE(VB_IMPORTANT, "MythMPD: clicked PlayQueue");
+    int item;
+    if (conn == NULL)
+    {
+        VERBOSE(VB_IMPORTANT, "MythMPD: Not connected");
+    }
+    else
+    {
+        MythScreenStack *mainStack = GetMythMainWindow()->GetMainStack();
+        MythMPD_PlayQueue *PlayQueueScreen = new MythMPD_PlayQueue(mainStack,this,"PlayQueue");
+        if (PlayQueueScreen->Create()) 
+        {
+            mainStack->AddScreen(PlayQueueScreen);
+        }
+        else
+        {
+            delete PlayQueueScreen;
+        }
+    }
 }
 
-void MythMPD::connect_mpd_clicked(void)
+
+void MythMPD::clicked_Database(void)
 {
-    if (connectMPD())
-        VERBOSE(VB_IMPORTANT, "MythMPD: connected to mpd");
+    VERBOSE(VB_IMPORTANT, "MythMPD: clicked Database");
 }
 
-void MythMPD::disconnect_mpd_clicked(void)
+
+void MythMPD::clicked_PlaylistEditor(void)
 {
-  //  m_statusText->SetText(QString("disconnected from MPD"));
+    VERBOSE(VB_IMPORTANT, "MythMPD: clicked PlaylistEditor");
 }
 
 
 void MythMPD::clearPlayList()
 {
-    m_mpdButtonList->Reset();
+
 }
+
 
 void MythMPD::reset()
 {
@@ -538,8 +569,6 @@ void MythMPD::reset()
 
 int MythMPD::updatePlayList()
 {
-    //printf("Updating playlist...\n");
-
     mpd_InfoEntity *entity;
     if (conn == NULL)
     {
@@ -548,7 +577,6 @@ int MythMPD::updatePlayList()
             dieMPD("Connection closed");
 	    return -1;
         }
-        //connect_mpd_clicked();
     }
     setMPDinfoText("Connected");
     mpd_sendPlaylistInfoCommand(conn,-1);
@@ -558,10 +586,10 @@ int MythMPD::updatePlayList()
     int endWindow = startWindow + 13;
 
     int counter = 0;
-    m_mpdButtonList->Reset();
+
     entity = mpd_getNextInfoEntity(conn);
 
-    VERBOSE(VB_IMPORTANT, "MythMPD: preparing playlist");
+    VERBOSE(VB_IMPORTANT, "MythMPD: update playlist");
 
     while (entity)
     {
@@ -588,7 +616,6 @@ int MythMPD::updatePlayList()
 
         if (thisPosition >= startWindow && thisPosition <= endWindow)
         {
-            MythUIButtonListItem *mpdItem = new MythUIButtonListItem(m_mpdButtonList,QString(buf));
 
             if (thisPosition == songPosition && !isStopped)
             {
@@ -620,4 +647,5 @@ int MythMPD::updatePlayList()
     }
     return 0;
 }
+
 

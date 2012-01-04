@@ -14,7 +14,7 @@
 #include <lcddevice.h>
 #include <myththemedmenu.h>
 #include <mythuihelper.h>
-
+#include "libmpdclient.h"
 #include "mythmpd.h"
 
 #define LOC_ERR QString("MythMPD:MAIN Error: ")
@@ -23,16 +23,17 @@
 
 using namespace std;
 
-/*extern "C" {
+extern "C" {
     int mythplugin_init(const char *libversion);
     int mythplugin_run(void);
-    int mythplugin_config(void);
-}*/
+    //int mythplugin_config(void);
+}
 void runMythMPD(void);
 int  RunMythMPD(void);
 void setupKeys(void);
 
 unsigned int *g_executed;
+mpd_Connection *conn;
 
 void setupKeys(void)
 {
@@ -68,7 +69,7 @@ int RunMythMPD(void)
 {
     MythScreenStack *mainStack = GetMythMainWindow()->GetMainStack();
     
-    MythMPD *mythmpd = new MythMPD(mainStack, "MythMPD");
+    MythMPD *mythmpd = new MythMPD(mainStack, g_executed, "MythMPD");
     
     if (mythmpd->Create())
     {
