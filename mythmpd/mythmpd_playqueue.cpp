@@ -77,6 +77,15 @@ bool MythMPD_PlayQueue::keyPressEvent(QKeyEvent *event)
     return handled;
 }
 
+
+void MythMPD_PlayQueue::Close()
+{
+    if (m_generalScreen)
+        m_generalScreen->Show();
+    MythScreenType::Close();
+}
+
+
 void MythMPD_PlayQueue::clicked_Back(void)
 {
     VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Going back to main screen");

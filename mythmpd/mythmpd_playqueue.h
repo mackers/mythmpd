@@ -17,6 +17,7 @@ class MythMPD_PlayQueue : public MythScreenType
                      const char *name = 0);
         bool Create(void);
         bool keyPressEvent(QKeyEvent *event);
+        void Close(void);
   //      int PlayQueue();
 
   //  public slots:
