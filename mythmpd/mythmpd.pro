@@ -3,6 +3,9 @@ include ( ../../settings.pro )
 
 QT += network sql xml core gui uitools
 
+INCLUDEPATH += /usr/include/mythtv/libmythui/
+INCLUDEPATH += /usr/include/mythtv/
+
 TEMPLATE = lib
 CONFIG += plugin thread
 TARGET = mythmpd
