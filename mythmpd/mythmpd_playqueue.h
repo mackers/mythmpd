@@ -1,12 +1,12 @@
 // MythTV headers
 
+#include <QObject>
 #include <mythscreentype.h>
 #include <mythuibutton.h>
 #include <mythuibuttonlist.h>
 #include <mythtv/uitypes.h>
 #include <mythuitext.h>
 #include <mythdialogbox.h>
-#include <QObject>
 
 class MythMPD_PlayQueue : public MythScreenType
 {
