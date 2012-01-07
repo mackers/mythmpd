@@ -467,7 +467,7 @@ void MythMPD::disconnectMPD()
 
 void MythMPD::dieMPD(char *error)
 {
-    //timer->stop();
+    timer->stop();
 
     if (conn != NULL)
 	    fprintf(stderr,"%s\n",conn->errorStr);

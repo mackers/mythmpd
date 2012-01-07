@@ -30,6 +30,7 @@ bool MythMPD_PlayQueue::Create()
     bool err = false;
     bool foundtheme = false;
     mpd_InfoEntity *entity;
+    mpd_Song *song;
     int counter = 0;
 
     foundtheme = LoadWindowFromXML("mythmpd-ui.xml", "PlayQueue", this);
@@ -46,19 +47,20 @@ bool MythMPD_PlayQueue::Create()
     m_buttonlistPlayQueue->Reset();
     while (entity)
     {
-        mpd_Song *song = entity->info.song;
+        song = entity->info.song;
         int thisPosition = song->pos;
         counter++;
         char buf[256];
-        sprintf(buf, "%s / %s / %s", song->title, song->artist, song->album);
-        MythUIButtonListItem *mpdItem = new MythUIButtonListItem(m_buttonlistPlayQueue,QString(buf));
+        sprintf(buf, "%s / %s / %s / %s", song->title, song->album, song->artist, song->file);
+        MythUIButtonListItem *playlist_item = new MythUIButtonListItem(m_buttonlistPlayQueue,QString(buf));
         VERBOSE(VB_IMPORTANT, buf);
         entity = mpd_getNextInfoEntity(conn);
     };
 
     BuildFocusList();
 
-    connect(m_buttonBack, SIGNAL(Clicked()), this, SLOT(clicked_Back()));
+    connect(m_buttonBack,          SIGNAL(Clicked()),                          this, SLOT(clicked_Back()));
+    connect(m_buttonlistPlayQueue, SIGNAL(itemClicked(MythUIButtonListItem*)), this, SLOT(clicked_track(MythUIButtonListItem*)));
     return true;
 }
 
@@ -75,6 +77,14 @@ bool MythMPD_PlayQueue::keyPressEvent(QKeyEvent *event)
         handled = true;
 
     return handled;
+}
+
+
+void MythMPD_PlayQueue::clicked_track(MythUIButtonListItem *playlist_item)
+{
+    int id = m_buttonlistPlayQueue->GetCurrentPos();
+    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: selected track " + QString::number(id));
+    mpd_sendPlayIdCommand(conn,id);
 }
 
 

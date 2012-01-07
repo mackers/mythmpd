@@ -61,7 +61,6 @@ class MythMPD : public MythScreenType
         void clicked_PlaylistEditor(void);
 
     protected:
-        // mpd_Connection *conn; now a global variable
         QTimer *timer;
         QTimer *statusTimer;
         UIListType *ltype;

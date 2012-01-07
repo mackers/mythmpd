@@ -18,9 +18,6 @@ class MythMPD_PlayQueue : public MythScreenType
         bool Create(void);
         bool keyPressEvent(QKeyEvent *event);
         void Close(void);
-  //      int PlayQueue();
-
-  //  public slots:
 
     private:
         MythScreenType *m_generalScreen;
@@ -29,7 +26,6 @@ class MythMPD_PlayQueue : public MythScreenType
 
     private slots:
         void clicked_Back(void);
-
-  //  protected:
+  	void clicked_track(MythUIButtonListItem *playlist_item);
 };
 

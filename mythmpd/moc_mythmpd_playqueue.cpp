@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'mythmpd_playqueue.h'
 **
-** Created: Sat Jan 7 12:43:35 2012
+** Created: Sat Jan 7 18:17:38 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.4)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_MythMPD_PlayQueue[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       2,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,12 +32,14 @@ static const uint qt_meta_data_MythMPD_PlayQueue[] = {
 
  // slots: signature, parameters, type, tag, flags
       19,   18,   18,   18, 0x08,
+      48,   34,   18,   18, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_MythMPD_PlayQueue[] = {
     "MythMPD_PlayQueue\0\0clicked_Back()\0"
+    "playlist_item\0clicked_track(MythUIButtonListItem*)\0"
 };
 
 const QMetaObject MythMPD_PlayQueue::staticMetaObject = {
@@ -70,9 +72,10 @@ int MythMPD_PlayQueue::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: clicked_Back(); break;
+        case 1: clicked_track((*reinterpret_cast< MythUIButtonListItem*(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 1;
+        _id -= 2;
     }
     return _id;
 }

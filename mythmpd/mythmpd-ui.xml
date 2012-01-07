@@ -117,7 +117,7 @@
 
     <window name="PlayQueue">
         <buttonlist name="buttonlist_PlayQueue">
-            <area>30%,10,800,400</area>
+            <area>20,20,1200,600</area>
             <layout>vertical</layout>
             <spacing>1</spacing>
             <arrange>stack</arrange>
@@ -216,7 +216,7 @@
         </buttonlist>
 
         <button name="button_Back" from="basebutton">
-            <position>20,90</position>
+            <position>20,650</position>
             <value>Back</value>
         </button>
 
