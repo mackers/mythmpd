@@ -16,6 +16,7 @@
 #include "mythmpd_playqueue.h"
 
 extern mpd_Connection *conn;
+
 MythMPD_PlayQueue::MythMPD_PlayQueue(MythScreenStack *parent,
                                    MythScreenType *previous,
                                    const char *name) :
@@ -30,9 +31,6 @@ bool MythMPD_PlayQueue::Create()
 {
     bool err = false;
     bool foundtheme = false;
-    mpd_InfoEntity *entity;
-    mpd_Song *song;
-    int counter = 0;
 
     foundtheme = LoadWindowFromXML("mythmpd-ui.xml", "PlayQueue", this);
     if (!foundtheme)
@@ -40,23 +38,7 @@ bool MythMPD_PlayQueue::Create()
     UIUtilE::Assign(this, m_buttonlistPlayQueue, "buttonlist_PlayQueue", &err);
     UIUtilE::Assign(this, m_buttonBack,          "button_Back"         , &err);
 
-    // Get current playlist contents.
-    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Getting current playlist");
-    mpd_sendPlaylistInfoCommand(conn,-1);
-    entity = mpd_getNextInfoEntity(conn);
-    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Showing playlist");
-    m_buttonlistPlayQueue->Reset();
-    while (entity)
-    {
-        song = entity->info.song;
-        int thisPosition = song->pos;
-        counter++;
-        char buf[256];
-        sprintf(buf, "%s / %s / %s / %s", song->title, song->album, song->artist, song->file);
-        MythUIButtonListItem *playlist_item = new MythUIButtonListItem(m_buttonlistPlayQueue,QString(buf));
-        VERBOSE(VB_IMPORTANT, buf);
-        entity = mpd_getNextInfoEntity(conn);
-    };
+    GetCurrentPlaylist();
 
     BuildFocusList();
 
@@ -86,6 +68,7 @@ void MythMPD_PlayQueue::clicked_track(MythUIButtonListItem *playlist_item)
     int id = m_buttonlistPlayQueue->GetCurrentPos();
     VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: selected track " + QString::number(id));
     mpd_sendPlayIdCommand(conn,id);
+    mpd_finishCommand(conn);
 }
 
 
@@ -102,4 +85,28 @@ void MythMPD_PlayQueue::clicked_Back(void)
     VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Going back to main screen");
     m_generalScreen->Show();
     Close();
+}
+
+void MythMPD_PlayQueue::GetCurrentPlaylist(void)
+{
+    mpd_InfoEntity *entity;
+    mpd_Song *song;
+    int counter = 0;
+    // Get current playlist contents.
+    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Getting current playlist");
+    mpd_sendPlaylistInfoCommand(conn,-1);
+    entity = mpd_getNextInfoEntity(conn);
+    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Showing playlist");
+    m_buttonlistPlayQueue->Reset();
+    while (entity)
+    {
+        song = entity->info.song;
+        int thisPosition = song->pos;
+        counter++;
+        char buf[256];
+        sprintf(buf, "%s / %s / %s / %s", song->title, song->album, song->artist, song->file);
+        MythUIButtonListItem *playlist_item = new MythUIButtonListItem(m_buttonlistPlayQueue,QString(buf));
+        VERBOSE(VB_IMPORTANT, buf);
+        entity = mpd_getNextInfoEntity(conn);
+    };
 }

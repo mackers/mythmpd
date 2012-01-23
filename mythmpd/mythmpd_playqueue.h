@@ -23,6 +23,7 @@ class MythMPD_PlayQueue : public MythScreenType
         MythScreenType *m_generalScreen;
         MythUIButtonList *m_buttonlistPlayQueue;
         MythUIButton   *m_buttonBack;
+        void GetCurrentPlaylist(void);
 
     private slots:
         void clicked_Back(void);
