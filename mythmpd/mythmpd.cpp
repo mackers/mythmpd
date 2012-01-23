@@ -18,6 +18,7 @@
 #define LOC      QString("MythMPD: ")
 #define LOC_WARN QString("MythMPD, Warning: ")
 #define LOC_ERR  QString("MythMPD, Error: ")
+extern mpd_Connection *conn;
 
 /** \brief Creates a new MythMPD Screen
 *  \param parent Pointer to the screen stack

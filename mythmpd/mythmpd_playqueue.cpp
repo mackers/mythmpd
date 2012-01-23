@@ -15,6 +15,7 @@
 #include "mythmpd.h"
 #include "mythmpd_playqueue.h"
 
+extern mpd_Connection *conn;
 MythMPD_PlayQueue::MythMPD_PlayQueue(MythScreenStack *parent,
                                    MythScreenType *previous,
                                    const char *name) :
