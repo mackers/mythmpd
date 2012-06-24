@@ -60,7 +60,7 @@ bool MythMPD::Create()
     
     if (err)
     {
-        VERBOSE(VB_IMPORTANT, "Cannot load screen 'MythMPD'");
+        LOG(VB_GENERAL, VB_GENERAL, "Cannot load screen 'MythMPD'");
         return false;
     }
     
@@ -433,7 +433,7 @@ bool MythMPD::connectMPD()
     isConnecting = 1;
     //example of how to find the configuration dir currently used.
     QString m_sSettingsFile = GetConfDir() + "/mythmpd.conf";
-    VERBOSE(VB_IMPORTANT, LOC + "Conf file:"  + m_sSettingsFile);
+    LOG(VB_GENERAL, VB_GENERAL, LOC + "Conf file:"  + m_sSettingsFile);
 
     QSettings settings(m_sSettingsFile, QSettings::NativeFormat);
     QString m_server_string = settings.value("server", "localhost").toString();
@@ -445,12 +445,12 @@ bool MythMPD::connectMPD()
     int m_port = m_port_string.toInt();
     float m_timeout_seconds = m_timeout_seconds_string.toFloat();
 
-    VERBOSE(VB_IMPORTANT, LOC + "Using " + m_server + ":" + m_port_string + " with " + m_timeout_seconds_string + " second timeout");    
+    LOG(VB_GENERAL, VB_GENERAL, LOC + "Using " + m_server + ":" + m_port_string + " with " + m_timeout_seconds_string + " second timeout");    
     conn = mpd_newConnection(m_server, m_port, m_timeout_seconds);
     if (conn->error)
     {
 	dieMPD("Could not connect");
-        VERBOSE(VB_IMPORTANT, "MythMPD: Could not connect to mpd");
+        LOG(VB_GENERAL, VB_GENERAL, "MythMPD: Could not connect to mpd");
 	isConnecting = 0;
 	return false;
     }
@@ -463,7 +463,7 @@ void MythMPD::disconnectMPD()
 {
     if (conn != NULL)	
 	    mpd_closeConnection(conn);
-    VERBOSE(VB_IMPORTANT, "MythMPD: mpd connection closed");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD: mpd connection closed");
 }
 
 void MythMPD::dieMPD(char *error)
@@ -511,11 +511,11 @@ void MythMPD::clearInformationText()
 
 void MythMPD::clicked_PlayQueue(void)
 {
-    VERBOSE(VB_IMPORTANT, "MythMPD: clicked PlayQueue");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD: clicked PlayQueue");
     int item;
     if (conn == NULL)
     {
-        VERBOSE(VB_IMPORTANT, "MythMPD: Not connected");
+        LOG(VB_GENERAL, VB_GENERAL, "MythMPD: Not connected");
     }
     else
     {
@@ -535,13 +535,13 @@ void MythMPD::clicked_PlayQueue(void)
 
 void MythMPD::clicked_Database(void)
 {
-    VERBOSE(VB_IMPORTANT, "MythMPD: clicked Database");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD: clicked Database");
 }
 
 
 void MythMPD::clicked_PlaylistEditor(void)
 {
-    VERBOSE(VB_IMPORTANT, "MythMPD: clicked PlaylistEditor");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD: clicked PlaylistEditor");
 }
 
 
@@ -565,7 +565,7 @@ void MythMPD::reset()
     previousSongPosition = -2;
     tracksInPlayList = 1;
     previousTracksInPlayList = -1;
-    VERBOSE(VB_IMPORTANT, "MythMPD: Playlist cleared/reset");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD: Playlist cleared/reset");
 }
 
 int MythMPD::updatePlayList()
@@ -590,7 +590,7 @@ int MythMPD::updatePlayList()
 
     entity = mpd_getNextInfoEntity(conn);
 
-    VERBOSE(VB_IMPORTANT, "MythMPD: update playlist");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD: update playlist");
 
     while (entity)
     {
@@ -613,7 +613,7 @@ int MythMPD::updatePlayList()
             sprintf(buf, "%s / %s / %s", song->title, song->artist, song->album);
         }
 
-        VERBOSE(VB_IMPORTANT, buf);
+        LOG(VB_GENERAL, VB_GENERAL, buf);
 
         if (thisPosition >= startWindow && thisPosition <= endWindow)
         {

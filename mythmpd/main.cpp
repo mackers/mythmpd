@@ -43,11 +43,11 @@ void setupKeys(void)
 
 int mythplugin_init(const char *libversion)
 {
-	VERBOSE(VB_IMPORTANT, LOC + "init");
+	LOG(VB_GENERAL, VB_GENERAL, LOC + "init");
     if (!gContext->TestPopupVersion("mythmpd", libversion,
                                     MYTH_BINARY_VERSION))
     {
-        VERBOSE(VB_IMPORTANT,
+        LOG(VB_GENERAL, VB_GENERAL, 
                 QString("libmythmpd.so/main.o: binary version mismatch"));
         return -1;
     }
@@ -85,7 +85,7 @@ int RunMythMPD(void)
 
 int mythplugin_run(void)
 {
-    VERBOSE(VB_IMPORTANT, LOC + "exec");
+    LOG(VB_GENERAL, VB_GENERAL, LOC + "exec");
     return RunMythMPD();
 }
 
@@ -97,6 +97,6 @@ int mythplugin_config(void)
 /* plugin clean-up */
 void mythplugin_destroy(void)
 {
-	VERBOSE(VB_IMPORTANT, LOC + "destroy");
+	LOG(VB_GENERAL, VB_GENERAL, LOC + "destroy");
 }
 

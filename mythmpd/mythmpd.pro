@@ -1,5 +1,6 @@
 include ( ../../mythconfig.mak )
 include ( ../../settings.pro )
+include ( ../../programs-libs.pro )
 
 QT += network sql xml core gui uitools
 

@@ -66,7 +66,7 @@ bool MythMPD_PlayQueue::keyPressEvent(QKeyEvent *event)
 void MythMPD_PlayQueue::clicked_track(MythUIButtonListItem *playlist_item)
 {
     int id = m_buttonlistPlayQueue->GetCurrentPos();
-    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: selected track " + QString::number(id));
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD_PlayQueue: selected track " + QString::number(id));
     mpd_sendPlayIdCommand(conn,id);
     mpd_finishCommand(conn);
 }
@@ -82,7 +82,7 @@ void MythMPD_PlayQueue::Close()
 
 void MythMPD_PlayQueue::clicked_Back(void)
 {
-    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Going back to main screen");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD_PlayQueue: Going back to main screen");
     m_generalScreen->Show();
     Close();
 }
@@ -93,10 +93,10 @@ void MythMPD_PlayQueue::GetCurrentPlaylist(void)
     mpd_Song *song;
     int counter = 0;
     // Get current playlist contents.
-    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Getting current playlist");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD_PlayQueue: Getting current playlist");
     mpd_sendPlaylistInfoCommand(conn,-1);
     entity = mpd_getNextInfoEntity(conn);
-    VERBOSE(VB_IMPORTANT, "MythMPD_PlayQueue: Showing playlist");
+    LOG(VB_GENERAL, VB_GENERAL, "MythMPD_PlayQueue: Showing playlist");
     m_buttonlistPlayQueue->Reset();
     while (entity)
     {
@@ -106,7 +106,7 @@ void MythMPD_PlayQueue::GetCurrentPlaylist(void)
         char buf[256];
         sprintf(buf, "%s / %s / %s / %s", song->title, song->album, song->artist, song->file);
         MythUIButtonListItem *playlist_item = new MythUIButtonListItem(m_buttonlistPlayQueue,QString(buf));
-        VERBOSE(VB_IMPORTANT, buf);
+        LOG(VB_GENERAL, VB_GENERAL, buf);
         entity = mpd_getNextInfoEntity(conn);
     };
 }

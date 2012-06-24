@@ -63,7 +63,7 @@ class MythMPD : public MythScreenType
     protected:
         QTimer *timer;
         QTimer *statusTimer;
-        UIListType *ltype;
+        //UIListType *ltype;
         int isConnecting;
         int isPlaying;
         int isTicking;
