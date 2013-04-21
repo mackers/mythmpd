@@ -464,6 +464,9 @@ int MythMPD::updatePlayList()
        
 	        MythUIButtonListItem *playlist_item =
 	            new MythUIButtonListItem(m_buttonlistPlayQueue, QString(buf));
+
+            if (counter == songPosition) {
+            }
         
 	        mpd_song_free(song);
         };
@@ -543,6 +546,7 @@ void MythMPD::clicked_track(void)
         mpd_send_load(conn, playlist_name);
         mpd_response_finish(conn);
         mpd_run_play(conn);
+        buttonlist_mode=QUEUE;
     } else if (buttonlist_mode == ARTISTS) {
         QByteArray ba = m_buttonlistPlayQueue->GetItemCurrent()->GetText().toLatin1();
         const char *playlist_name = ba.data();
@@ -560,6 +564,7 @@ void MythMPD::clicked_track(void)
 
         mpd_response_finish(conn);
         mpd_run_play(conn);
+        buttonlist_mode=QUEUE;
     }
 }
 
