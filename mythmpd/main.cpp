@@ -1,59 +1,102 @@
-#ifndef MAIN_CPP
-#define MAIN_CPP
+// C++ headers
+#include <unistd.h>
+
+// QT headers
+#include <QApplication>
+
+// MythTV headers
+#include <mythcontext.h>
+#include <mythplugin.h>
+#include <mythpluginapi.h>
+#include <mythversion.h>
+#include <mythmainwindow.h>
+#include <mythdbcon.h>
+#include <lcddevice.h>
+#include <myththemedmenu.h>
+#include <mythuihelper.h>
+#include <mpd/client.h>
+#include "mythmpd.h"
+
+#define LOC_ERR QString("MythMPD:MAIN Error: ")
+#define LOC_WARN QString("MythMPD:MAIN Warning: ")
+#define LOC QString("MythMPD:MAIN: ")
 
 using namespace std;
-
-#include "mythmpd.h"
-#include <mythtv/mythcontext.h>
-#include <mythtv/mythdbcon.h>
-#include <mythtv/lcddevice.h>
-#include <mythtv/libmythui/myththemedmenu.h>
 
 extern "C" {
     int mythplugin_init(const char *libversion);
     int mythplugin_run(void);
-    int mythplugin_config(void);
+    //int mythplugin_config(void);
 }
-
 void runMythMPD(void);
+int  RunMythMPD(void);
+void setupKeys(void);
+
+unsigned int *g_executed;
+mpd_connection *conn;
 
 void setupKeys(void)
 {
     REG_JUMP("MythMPD", "", "", runMythMPD);
-
-    // The rest of the keys are "borrowed" from MythMusic
 }
+
 
 int mythplugin_init(const char *libversion)
 {
-    if (!gContext->TestPopupVersion("mythmpd", libversion, MYTH_BINARY_VERSION))
+	LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, LOC + "init");
+    if (!gContext->TestPopupVersion("mythmpd", libversion,
+                                    MYTH_BINARY_VERSION))
+    {
+        LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, 
+                QString("libmythmpd.so/main.o: binary version mismatch"));
         return -1;
+    }
+
+    if (!(g_executed = new unsigned int))
+    	return -1;
+    *g_executed = 0;
 
     setupKeys();
-
     return 0;
 }
-
-int mythplugin_run (void)
-{
-    gContext->addCurrentLocation("mythmpd");
-
-    MythMPD mpd(gContext->GetMainWindow(), "mpd", "mpd-");
-    mpd.exec();
-
-    gContext->removeCurrentLocation();
-
-    return 1;
-}
-
-int mythplugin_config (void)
-{
-    return 0;
-}
-
+ 
 void runMythMPD(void)
 {
-    mythplugin_run();
+    RunMythMPD();
 }
 
-#endif
+int RunMythMPD(void)
+{
+    MythScreenStack *mainStack = GetMythMainWindow()->GetMainStack();
+    
+    MythMPD *mythmpd = new MythMPD(mainStack, g_executed, "MythMPD");
+    
+    if (mythmpd->Create())
+    {
+        mainStack->AddScreen(mythmpd);
+        return 0;
+    }
+    else
+    {
+        delete mythmpd;
+        return -1;
+    }
+}
+
+int mythplugin_run(void)
+{
+    LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, LOC + "exec");
+    return RunMythMPD();
+}
+
+int mythplugin_config(void)
+{
+    return 0;
+}
+
+/* plugin clean-up */
+void mythplugin_destroy(void)
+{
+	LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, LOC + "destroy");
+}
+
