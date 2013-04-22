@@ -30,6 +30,96 @@
       <filename>rk-lines.png</filename>
       <position>0,280</position>
     </imagetype>
+    <imagetype name="track_info_background" draworder="0" fleximage="no">
+      <filename>track_info_background.png</filename>
+      <area>30,70,100%,210</area>
+    </imagetype>
+    <textarea name="windowtitle">
+      <area>0,0,100%,100</area>
+      <font>large-bold</font>
+      <align>allcenter</align>
+      <multiline>yes</multiline>
+      <value>MythMPD</value>
+    </textarea>
+    <button name="button_Playlists" from="basebutton">
+      <position>20,90</position>
+      <value>Playlists</value>
+    </button>
+    <button name="button_PlayQueue" from="basebutton">
+      <position>20,150</position>
+      <value>Queue</value>
+    </button>
+    <button name="button_Artists" from="basebutton">
+      <position>20,210</position>
+      <value>Artists</value>
+    </button>
+    <textarea name="label_Title">
+      <font>large-bold</font>
+      <area>250,100,150,35</area>
+      <value>Title: </value>
+      <cutdown>yes</cutdown>
+    </textarea>
+    <textarea name="label_Album">
+      <font>large-bold</font>
+      <area>250,135,150,35</area>
+      <value>Album: </value>
+      <cutdown>yes</cutdown>
+    </textarea>
+    <textarea name="label_Artist">
+      <font>large-bold</font>
+      <area>250,170,150,35</area>
+      <value>Artist: </value>
+      <cutdown>yes</cutdown>
+    </textarea>
+    <textarea name="label_Time">
+      <font>large-bold</font>
+      <area>250,205,150,35</area>
+      <value>Time: </value>
+      <cutdown>yes</cutdown>
+    </textarea>
+    <textarea name="text_Title">
+      <font>large</font>
+      <area>400,100,80%,35</area>
+      <value/>
+      <cutdown>yes</cutdown>
+    </textarea>
+    <textarea name="text_Album">
+      <font>large</font>
+      <area>400,135,80%,35</area>
+      <value/>
+      <cutdown>yes</cutdown>
+    </textarea>
+    <textarea name="text_Artist">
+      <font>large</font>
+      <area>400,170,80%,35</area>
+      <value/>
+      <cutdown>yes</cutdown>
+    </textarea>
+    <textarea name="text_Time">
+      <font>large</font>
+      <area>400,205,90%,35</area>
+      <value/>
+    </textarea>
+    <textarea name="status_label">
+      <font>status</font>
+      <area>1050,20,150,200</area>
+      <value>Status: </value>
+    </textarea>
+    <textarea name="status">
+      <font>status</font>
+      <area>1150,20,100,200</area>
+      <value/>
+    </textarea>
+    <textarea name="MPDinfo_label">
+      <font>status</font>
+      <area>1050,40,100,200</area>
+      <value>MPD Info: </value>
+    </textarea>
+    <textarea name="MPDinfo">
+      <font>status</font>
+      <area>1150,40,200,200</area>
+      <value/>
+    </textarea>
     <buttonlist name="buttonlist_PlayQueue">
       <area>30,280,100%-30,100%-60</area>
       <layout>vertical</layout>
@@ -116,95 +206,5 @@
         </state>
       </statetype>
     </buttonlist>
-    <imagetype name="track_info_background" draworder="0" fleximage="no">
-      <filename>track_info_background.png</filename>
-      <area>30,70,100%,210</area>
-    </imagetype>
-    <textarea name="windowtitle">
-      <area>0,0,100%,100</area>
-      <font>large-bold</font>
-      <align>allcenter</align>
-      <multiline>yes</multiline>
-      <value>MythMPD</value>
-    </textarea>
-    <button name="button_Playlists" from="basebutton">
-      <position>20,90</position>
-      <value>Playlists</value>
-    </button>
-    <button name="button_PlayQueue" from="basebutton">
-      <position>20,150</position>
-      <value>Queue</value>
-    </button>
-    <button name="button_Artists" from="basebutton">
-      <position>20,210</position>
-      <value>Artists</value>
-    </button>
-    <textarea name="label_Title">
-      <font>large-bold</font>
-      <area>250,100,150,35</area>
-      <value>Title: </value>
-      <cutdown>yes</cutdown>
-    </textarea>
-    <textarea name="label_Album">
-      <font>large-bold</font>
-      <area>250,135,150,35</area>
-      <value>Album: </value>
-      <cutdown>yes</cutdown>
-    </textarea>
-    <textarea name="label_Artist">
-      <font>large-bold</font>
-      <area>250,170,150,35</area>
-      <value>Artist: </value>
-      <cutdown>yes</cutdown>
-    </textarea>
-    <textarea name="label_Time">
-      <font>large-bold</font>
-      <area>250,205,150,35</area>
-      <value>Time: </value>
-      <cutdown>yes</cutdown>
-    </textarea>
-    <textarea name="text_Title">
-      <font>large</font>
-      <area>400,100,100%,35</area>
-      <value/>
-      <cutdown>yes</cutdown>
-    </textarea>
-    <textarea name="text_Album">
-      <font>large</font>
-      <area>400,135,480,35</area>
-      <value/>
-      <cutdown>yes</cutdown>
-    </textarea>
-    <textarea name="text_Artist">
-      <font>large</font>
-      <area>400,170,480,35</area>
-      <value/>
-      <cutdown>yes</cutdown>
-    </textarea>
-    <textarea name="text_Time">
-      <font>large</font>
-      <area>400,205,480,35</area>
-      <value/>
-    </textarea>
-    <textarea name="status_label">
-      <font>status</font>
-      <area>1050,20,150,200</area>
-      <value>Status: </value>
-    </textarea>
-    <textarea name="status">
-      <font>status</font>
-      <area>1150,20,100,200</area>
-      <value/>
-    </textarea>
-    <textarea name="MPDinfo_label">
-      <font>status</font>
-      <area>1050,40,150,200</area>
-      <value>MPD Info: </value>
-    </textarea>
-    <textarea name="MPDinfo">
-      <font>status</font>
-      <area>1150,40,200,200</area>
-      <value/>
-    </textarea>
   </window>
 </mythuitheme>
