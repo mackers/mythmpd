@@ -85,12 +85,12 @@ bool MythMPD::keyPressEvent(QKeyEvent * event)
 
     bool handled = false;
     QStringList actions;
-	LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "keypress");
+	//LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "keypress");
     handled = GetMythMainWindow()->TranslateKeyPress("Music", event, actions);
 
     for (int i = 0; i < actions.size() && !handled; i++) {
 	    QString action = actions[i];
-	    LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, action);
+	    //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, action);
 	    handled = true;
 
 	    if (action == "PAUSE") {
@@ -316,14 +316,11 @@ bool MythMPD::connectMPD()
     int m_port = m_port_string.toInt();
     float m_timeout_seconds = m_timeout_seconds_string.toFloat();
 
-    LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL,
-	LOC + "Using " + m_server + ":" + m_port_string + " with " +
-	m_timeout_seconds_string + " second timeout");
+    //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, LOC + "Using " + m_server + ":" + m_port_string + " with " + m_timeout_seconds_string + " second timeout");
     conn = mpd_connection_new(m_server, m_port, m_timeout_seconds*1000);
     if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 	    dieMPD((char *) "Could not connect");
-	    LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL,
-	        (char *) "MythMPD: Could not connect to mpd");
+	    //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, (char *) "MythMPD: Could not connect to mpd");
 	    isConnecting = 0;
 	    return false;
     }
@@ -422,13 +419,13 @@ void MythMPD::reset()
     previousSongPosition = -2;
     tracksInPlayList = 1;
     previousTracksInPlayList = -1;
-    LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Playlist cleared/reset");
+    //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Playlist cleared/reset");
 }
 
 int MythMPD::updatePlayList()
 {
 	struct mpd_song *song;
-    LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: update playlist");
+    //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: update playlist");
     if (conn == NULL) {
 	    if (!(connectMPD())) {
 	        dieMPD((char *) "Connection closed");
@@ -447,14 +444,12 @@ int MythMPD::updatePlayList()
     m_buttonlistPlayQueue->Reset();
 
     if (buttonlist_mode == QUEUE) {
-        LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting playlist");
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting playlist");
         if (!mpd_send_list_queue_meta(conn)) {
             dieMPD((char *) "No songs?");
             return -1;
         }
         while ((song = mpd_recv_song(conn)) != NULL) {
-	        int thisPosition = mpd_song_get_pos(song);
-	        counter++;
 	        char buf[256];
 	        if (strlen(song_value(song,"title")) == 0) {
 	            sprintf(buf, "%s / %s / %s", song_value(song,"file"), song_value(song,"artist"), song_value(song,"album"));
@@ -466,13 +461,15 @@ int MythMPD::updatePlayList()
 	            new MythUIButtonListItem(m_buttonlistPlayQueue, QString(buf));
 
             if (counter == songPosition) {
+                m_buttonlistPlayQueue->SetItemCurrent(playlist_item);
             }
+	        counter++;
         
 	        mpd_song_free(song);
         };
     } else if (buttonlist_mode == PLAYLISTS) {
         mpd_playlist *playlist;
-        LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting playlists");
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting playlists");
         if (!mpd_send_list_meta(conn, NULL)) {
             dieMPD((char *) "No songs?");
             return -1;
@@ -488,7 +485,7 @@ int MythMPD::updatePlayList()
             mpd_playlist_free(playlist);
         };
     } else if (buttonlist_mode == ARTISTS) {
-        LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting artists");
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting artists");
         enum mpd_tag_type type;
         struct mpd_pair *pair;
 
@@ -534,14 +531,12 @@ void MythMPD::clicked_track(void)
 {
     int id = m_buttonlistPlayQueue->GetCurrentPos();
     if (buttonlist_mode == QUEUE) {
-        LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL,
-	        "MythMPD: selected track " + QString::number(id));
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: selected track " + QString::number(id));
         mpd_run_play_pos(conn, id);
     } else if (buttonlist_mode == PLAYLISTS) {
         QByteArray ba = m_buttonlistPlayQueue->GetItemCurrent()->GetText().toLatin1();
         const char *playlist_name = ba.data();
-        LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL,
-	        "MythMPD: selected playlist" + ba);
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: selected playlist " + ba);
         mpd_run_clear(conn);
         mpd_send_load(conn, playlist_name);
         mpd_response_finish(conn);
@@ -549,9 +544,7 @@ void MythMPD::clicked_track(void)
         buttonlist_mode=QUEUE;
     } else if (buttonlist_mode == ARTISTS) {
         QByteArray ba = m_buttonlistPlayQueue->GetItemCurrent()->GetText().toLatin1();
-        const char *playlist_name = ba.data();
-        LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL,
-	        "MythMPD: selected artist" + ba);
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: selected artist " + ba);
         mpd_run_clear(conn);
         enum mpd_tag_type type;
 
