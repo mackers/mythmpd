@@ -9,6 +9,8 @@ FEATURES
 - shows current playlist
 - basic play/pause/stop/next/previous track keyboard/remote controls
 - volume up/down/mute
+- load pre-existing playlists
+- load all songs by selected artist
 
 There is (currently?) no advanced support for playlist management; i.e. you cannot add songs to the playlist. You will have to use a rich client on another machine for this.
 

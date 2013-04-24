@@ -1,5 +1,7 @@
-include ( ../../mythconfig.mak )
-include ( ../../settings.pro )
+QT += network sql xml core gui
+
+INCLUDEPATH += /usr/include/mythtv/libmythui/
+INCLUDEPATH += /usr/include/mythtv/
 
 TEMPLATE = lib
 CONFIG += plugin thread
@@ -8,16 +10,21 @@ target.path = $${LIBDIR}/mythtv/plugins
 INSTALLS += target
 
 uifiles.path = $${PREFIX}/share/mythtv/themes/default
-uifiles.files = mpd-ui.xml
+uifiles.files = mythmpd-ui.xml
 installfiles.path = $${PREFIX}/share/mythtv
-installfiles.files = mpd-ui.xml
+installfiles.files = mythmpd-ui.xml
 
 INSTALLS += uifiles
 
 # Input
-HEADERS += mythmpd.h libmpdclient.h
-SOURCES += main.cpp mythmpd.cpp libmpdclient.c 
+HEADERS += mythmpd.h
+SOURCES += main.cpp mythmpd.cpp
 
 macx {
     QMAKE_LFLAGS += -flat_namespace -undefined suppress
+}
+
+unix {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += libmpdclient
 }
