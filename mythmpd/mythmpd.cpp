@@ -12,7 +12,7 @@ extern mpd_connection *conn;
 */
 MythMPD::MythMPD(MythScreenStack * parent, unsigned int *executed,
 		 QString name):MythScreenType(parent, name),
-m_buttonPlayQueue(NULL), m_buttonArtists(NULL), m_buttonPlaylists(NULL)
+m_buttonGenres(NULL), m_buttonArtists(NULL), m_buttonPlaylists(NULL)
 {
     m_executed = executed;
 }
@@ -38,7 +38,7 @@ bool MythMPD::Create()
     UIUtilE::Assign(this, m_MPDinfoText, "MPDinfo", &err);
     UIUtilE::Assign(this, m_buttonArtists, "button_Artists", &err);
     UIUtilE::Assign(this, m_buttonPlaylists, "button_Playlists", &err);
-    UIUtilE::Assign(this, m_buttonPlayQueue, "button_PlayQueue", &err);
+    UIUtilE::Assign(this, m_buttonGenres, "button_Genres", &err);
     UIUtilE::Assign(this, m_buttonlistPlayQueue, "buttonlist_PlayQueue",
 		    &err);
 
@@ -56,14 +56,15 @@ bool MythMPD::Create()
 	    SLOT(clicked_Artists()));
     connect(m_buttonPlaylists, SIGNAL(Clicked()), this,
 	    SLOT(clicked_Playlists()));
-    connect(m_buttonPlayQueue, SIGNAL(Clicked()), this,
-	    SLOT(clicked_PlayQueue()));
+    connect(m_buttonGenres, SIGNAL(Clicked()), this,
+	    SLOT(clicked_Genres()));
     connect(m_buttonlistPlayQueue,
 	    SIGNAL(itemClicked(MythUIButtonListItem *)), this,
 	    SLOT(clicked_track()));
 
 
     updatePlayList();
+    mpd_run_play(conn);
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateStatus()));
     timer->start(1500);
@@ -95,7 +96,7 @@ bool MythMPD::keyPressEvent(QKeyEvent * event)
 
 	    if (action == "PAUSE") {
 	        if (play_state == MPD_STATE_PLAY) {
-		        mpd_send_pause(conn, true);
+		        mpd_run_pause(conn, true);
 	        } else {
 		        mpd_run_play(conn);
 	        }
@@ -136,6 +137,15 @@ bool MythMPD::keyPressEvent(QKeyEvent * event)
 
 	        mpd_run_set_volume(conn, volume);
 	    } else if (action == "SELECT") {
+	    } else if (action == "ESCAPE") {
+            if (buttonlist_mode == QUEUE) {
+	            mpd_run_stop(conn);
+	            handled = false;
+            } else {
+                buttonlist_mode = QUEUE;
+                updatePlayList();
+            }
+	    } else if (action == "MENU") {
 	    } else {
 	        handled = false;
 	    }
@@ -387,9 +397,9 @@ void MythMPD::clearInformationText()
 }
 
 
-void MythMPD::clicked_PlayQueue(void)
+void MythMPD::clicked_Genres(void)
 {
-    buttonlist_mode = QUEUE;
+    buttonlist_mode = GENRES;
     updatePlayList();
 }
 
@@ -471,19 +481,27 @@ int MythMPD::updatePlayList()
         mpd_playlist *playlist;
         //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting playlists");
         if (!mpd_send_list_meta(conn, NULL)) {
-            dieMPD((char *) "No songs?");
+            dieMPD((char *) "No playlists?");
             return -1;
         }
         if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS)
             return -1;
 
+        QStringList playlists;
         while ((playlist = mpd_recv_playlist(conn)) != NULL) {
-            char buf[256];
-            sprintf(buf, "%s", mpd_playlist_get_path(playlist));
-            MythUIButtonListItem *playlist_item =
-                new MythUIButtonListItem(m_buttonlistPlayQueue, QString(buf));
+            playlists.append(QString(mpd_playlist_get_path(playlist)));
             mpd_playlist_free(playlist);
-        };
+        }
+        QMap<QString, QString> map;
+        foreach (const QString &str, playlists)
+            map.insert(str.toLower(), str);
+        
+        playlists = map.values();
+
+        for (int i = 0; i < playlists.size(); ++i) {
+            MythUIButtonListItem *playlist_item =
+                new MythUIButtonListItem(m_buttonlistPlayQueue, playlists.at(i));
+        }
     } else if (buttonlist_mode == ARTISTS) {
         //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting artists");
         enum mpd_tag_type type;
@@ -509,6 +527,32 @@ int MythMPD::updatePlayList()
         for (int i = 0; i < artists.size(); ++i) {
             MythUIButtonListItem *playlist_item =
                 new MythUIButtonListItem(m_buttonlistPlayQueue, artists.at(i));
+        }
+    } else if (buttonlist_mode == GENRES) {
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: Getting genres");
+        enum mpd_tag_type type;
+        struct mpd_pair *pair;
+
+        type = mpd_tag_name_iparse("genre");
+        mpd_search_db_tags(conn, type);
+        
+        if (!mpd_search_commit(conn))
+            printErrorAndExit(conn);
+
+        QStringList genres;
+        while ((pair = mpd_recv_pair_tag(conn, type)) != NULL) {
+            genres.append(QString(pair->value));
+            mpd_return_pair(conn, pair);
+        }
+        QMap<QString, QString> map;
+        foreach (const QString &str, genres)
+            map.insert(str.toLower(), str);
+        
+        genres = map.values();
+
+        for (int i = 0; i < genres.size(); ++i) {
+            MythUIButtonListItem *playlist_item =
+                new MythUIButtonListItem(m_buttonlistPlayQueue, genres.at(i));
         }
     }
         
@@ -538,8 +582,7 @@ void MythMPD::clicked_track(void)
         const char *playlist_name = ba.data();
         //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: selected playlist " + ba);
         mpd_run_clear(conn);
-        mpd_send_load(conn, playlist_name);
-        mpd_response_finish(conn);
+        mpd_run_load(conn, playlist_name);
         mpd_run_play(conn);
         buttonlist_mode=QUEUE;
     } else if (buttonlist_mode == ARTISTS) {
@@ -549,6 +592,22 @@ void MythMPD::clicked_track(void)
         enum mpd_tag_type type;
 
         type = mpd_tag_name_iparse("artist");
+        mpd_search_add_db_songs(conn, true);
+        mpd_search_add_tag_constraint(conn, MPD_OPERATOR_DEFAULT, type, ba);
+        
+        if (!mpd_search_commit(conn))
+            printErrorAndExit(conn);
+
+        mpd_response_finish(conn);
+        mpd_run_play(conn);
+        buttonlist_mode=QUEUE;
+    } else if (buttonlist_mode == GENRES) {
+        QByteArray ba = m_buttonlistPlayQueue->GetItemCurrent()->GetText().toLatin1();
+        //LOG((LogLevel_t)VB_GENERAL, (LogLevel_t)VB_GENERAL, "MythMPD: selected genre " + ba);
+        mpd_run_clear(conn);
+        enum mpd_tag_type type;
+
+        type = mpd_tag_name_iparse("genre");
         mpd_search_add_db_songs(conn, true);
         mpd_search_add_tag_constraint(conn, MPD_OPERATOR_DEFAULT, type, ba);
         

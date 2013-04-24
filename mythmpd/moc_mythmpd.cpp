@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'mythmpd.h'
 **
-** Created: Mon Apr 22 08:46:41 2013
+** Created: Wed Apr 24 11:18:48 2013
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -34,16 +34,16 @@ static const uint qt_meta_data_MythMPD[] = {
        9,    8,    8,    8, 0x0a,
       27,    8,    8,    8, 0x0a,
       42,    8,    8,    8, 0x08,
-      62,    8,    8,    8, 0x08,
-      82,    8,    8,    8, 0x08,
-     100,    8,    8,    8, 0x08,
+      59,    8,    8,    8, 0x08,
+      79,    8,    8,    8, 0x08,
+      97,    8,    8,    8, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_MythMPD[] = {
     "MythMPD\0\0statusTimerDone()\0updateStatus()\0"
-    "clicked_PlayQueue()\0clicked_Playlists()\0"
+    "clicked_Genres()\0clicked_Playlists()\0"
     "clicked_Artists()\0clicked_track()\0"
 };
 
@@ -55,7 +55,7 @@ void MythMPD::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         switch (_id) {
         case 0: _t->statusTimerDone(); break;
         case 1: _t->updateStatus(); break;
-        case 2: _t->clicked_PlayQueue(); break;
+        case 2: _t->clicked_Genres(); break;
         case 3: _t->clicked_Playlists(); break;
         case 4: _t->clicked_Artists(); break;
         case 5: _t->clicked_track(); break;

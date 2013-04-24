@@ -53,7 +53,7 @@ class MythMPD : public MythScreenType
         MythUIText *m_playtimeText;
         MythUIText *m_statusText;
         MythUIText *m_MPDinfoText;
-        MythUIButton   *m_buttonPlayQueue;
+        MythUIButton   *m_buttonGenres;
         MythUIButton   *m_buttonArtists;
         MythUIButton   *m_buttonPlaylists;
         MythUIButtonList   *m_buttonlistPlayQueue;
@@ -76,7 +76,7 @@ class MythMPD : public MythScreenType
         bool update_playlist(bool doUpdatePlayList);
 
     private slots:
-        void clicked_PlayQueue(void);
+        void clicked_Genres(void);
         void clicked_Playlists(void);
         void clicked_Artists(void);
         void clicked_track(void);
